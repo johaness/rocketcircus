@@ -1,0 +1,259 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Meta-Programming &mdash; RocketCircus Code</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="RocketCircus Code" href="../index.html" />
+    <link rel="prev" title="RocketCircus Code Samples" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../index.html" title="RocketCircus Code Samples"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">RocketCircus Code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="meta-programming">
+<h1>Meta-Programming<a class="headerlink" href="#meta-programming" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h2>
+<p>Last week we developed the interface for a state-machine based <tt class="docutils literal"><span class="pre">Workflow</span></tt>
+class that allows implementing simple workflows like this classical
+publishing example:</p>
+<img alt="../_images/plone_workflow.jpg" src="../_images/plone_workflow.jpg" style="width: 500px;" />
+<p>This was how we specified the workflow graph:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">PublicationWorkflow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;called by Workflow.__init__&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="n">initial</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s">&#39;published&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="s">&#39;submit&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;published&#39;</span><span class="p">,</span> <span class="s">&#39;publish&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="s">&#39;published&#39;</span><span class="p">,</span> <span class="s">&#39;publish&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;retract&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s">&#39;published&#39;</span><span class="p">,</span> <span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;retract&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It is supposed to be used as adapter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Article</span><span class="p">:</span> <span class="k">pass</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">Article</span><span class="p">()</span>
+
+<span class="c"># adapts to any object</span>
+<span class="n">PublicationWorkflow</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">transition_to</span><span class="p">(</span><span class="s">&quot;published&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>While this adapter usage of the Workflow classes is as we wanted it to be,
+the definition of <tt class="docutils literal"><span class="pre">PublicationWorkflow</span></tt> is quite bloated.
+Also, <tt class="docutils literal"><span class="pre">setup()</span></tt> is run upon every instantiation of a Workflow.
+Besides the performance overhead, this also means that any checks we want to
+do on the workflow graph are delayed until then.</p>
+<p>To improve on that, we want to write this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">PublicationWorkflow</span><span class="p">(</span><span class="n">Workflow</span><span class="p">):</span>
+    <span class="n">initial</span> <span class="o">=</span> <span class="s">&#39;private&#39;</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="s">&#39;published&#39;</span><span class="p">)</span>
+    <span class="n">transitions</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="s">&#39;submit&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;published&#39;</span><span class="p">,</span> <span class="s">&#39;publish&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="s">&#39;published&#39;</span><span class="p">,</span> <span class="s">&#39;publish&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;review&#39;</span><span class="p">,</span> <span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;retract&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s">&#39;published&#39;</span><span class="p">,</span> <span class="s">&#39;private&#39;</span><span class="p">,</span> <span class="s">&#39;retract&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>and we want the sanity checks to run right at this point where we
+define the class, not later when we instantiate it.</p>
+</div>
+<div class="section" id="metaclasses">
+<h2>Metaclasses<a class="headerlink" href="#metaclasses" title="Permalink to this headline">¶</a></h2>
+<p>Metaclasses are to classes what classes are to objects:</p>
+<div class="math">
+<p><img src="../_images/math/150085d69b0ec2015aacee1deaa6aef36c0049c2.png" alt="class : object \leftrightarrow metaclass : class"/></p>
+</div><p>Or</p>
+<blockquote>
+<div><p>Metaclasses are the class of a class</p>
+<p>Metaclasses are factories for classes</p>
+</div></blockquote>
+<p><tt class="docutils literal"><span class="pre">type</span></tt> is the built-in metaclass, lets see how it works:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c"># is the same as</span>
+
+<span class="n">Foo</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="s">&quot;Foo&quot;</span><span class="p">,</span> <span class="p">(</span><span class="nb">object</span><span class="p">,),</span> <span class="p">{</span><span class="s">&#39;bar&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,})</span>
+</pre></div>
+</div>
+<p>So that whole <tt class="docutils literal"><span class="pre">class</span></tt> thing is really just syntactic sugar for &#8216;evaluate the
+class suite, throw the result into your metaclass, bind the result to the
+provided name&#8217;.</p>
+<p>We can hook in here with our own metaclass:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Foo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">Meta</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="k">class</span> <span class="nc">Meta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mklass</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">namespace</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">mklass</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">namespace</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">namespace</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">__new__</span></tt> is a class method and will be called first - because it returns the
+new class it can also change the type and name, even return a completely
+different class (useful for singletons).
+It can also add new items to the namespace or change the list of base classes.
+<tt class="docutils literal"><span class="pre">__init__</span></tt> is called later and restricted to modifying existing entries in
+<tt class="docutils literal"><span class="pre">namespace</span></tt>.</p>
+<p>If only <tt class="docutils literal"><span class="pre">__init__</span></tt> is required, a metafunction will do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">Meta</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">namespace</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-cases">
+<h2>Use Cases<a class="headerlink" href="#use-cases" title="Permalink to this headline">¶</a></h2>
+<p>Whenever we want to act on a class upon its creation, eg. for</p>
+<blockquote>
+<div><ul class="simple">
+<li>Validating class data (eg. the Workflow transition checks mentioned above)</li>
+<li>Provide more natural, declarative end-user interface (also Workflow, compare
+to our previous implementations)</li>
+<li>Auto-decorating of methods</li>
+<li>Auto-registration of classes</li>
+</ul>
+</div></blockquote>
+<p>Most stuff can be implemented in other ways, too, but might result in less
+clean APIs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">meta-methods and -properties are the only features exclusively
+available thru metaclass use.</p>
+</div>
+</div>
+<div class="section" id="inheritance">
+<h2>Inheritance<a class="headerlink" href="#inheritance" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">__metaclass__</span></tt> are inherited, but can be overwritten. Whatever happens, only
+one metaclass is called.</p>
+</div>
+<div class="section" id="python-3">
+<h2>Python 3<a class="headerlink" href="#python-3" title="Permalink to this headline">¶</a></h2>
+<p>No changes except for how you specify the metaclass:</p>
+<div class="highlight-python"><pre>class Foo(metaclass=MyMetaClass):
+    pass</pre>
+</div>
+<p><tt class="docutils literal"><span class="pre">2to3</span></tt> catches <tt class="docutils literal"><span class="pre">__metaclass__</span></tt> attributes and does the conversion
+automatically.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>In-depth presentation on metaclasses in 2.2:
+<a class="reference external" href="http://www.vrplumber.com/programming/metaclasses.pdf">http://www.vrplumber.com/programming/metaclasses.pdf</a></p>
+<p>Guido&#8217;s Blog post about the history of metaclasses:
+<a class="reference external" href="http://python-history.blogspot.com/2009/04/metaclasses-and-extension-classes-aka.html">http://python-history.blogspot.com/2009/04/metaclasses-and-extension-classes-aka.html</a></p>
+<p>For the non-selfists, Michael Foord shows how to get rid of the canonical
+<tt class="docutils literal"><span class="pre">self</span></tt> as first parameter in instance method signatures:
+<a class="reference external" href="http://www.voidspace.org.uk/python/articles/metaclasses.shtml">http://www.voidspace.org.uk/python/articles/metaclasses.shtml</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Meta-Programming</a><ul>
+<li><a class="reference internal" href="#motivation">Motivation</a></li>
+<li><a class="reference internal" href="#metaclasses">Metaclasses</a></li>
+<li><a class="reference internal" href="#use-cases">Use Cases</a></li>
+<li><a class="reference internal" href="#inheritance">Inheritance</a></li>
+<li><a class="reference internal" href="#python-3">Python 3</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../index.html"
+                        title="previous chapter">RocketCircus Code Samples</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/20110616/metaclass.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../index.html" title="RocketCircus Code Samples"
+             >previous</a> |</li>
+        <li><a href="../index.html">RocketCircus Code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, WhiteMatter Labs GmbH.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1pre.
+    </div>
+  </body>
+</html>
