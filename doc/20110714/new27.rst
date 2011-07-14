@@ -3,15 +3,9 @@ Whats new in Python 2.7
 
 Full details from the source http://docs.python.org/dev/whatsnew/2.7.html
 
-.. warn::
-
-   Pygments (used by Sphinx for Syntax highlighting) will not render this
-   source unless you tell it to treat it as Python 3. This is due to the 
-   new set literals and set/dict comprehensions.
-
 .. highlight:: py3
 
-Sample code::
+Sample code for new Python 2.7 features with 2.6 versions first::
 
     from os import system
     import unittest
@@ -103,8 +97,17 @@ Sample code::
 
 
 
+.. note::
+   Pygments (used by Sphinx for syntax highlighting) will not render this
+   source unless you tell it to treat it as Python 3. This is due to the 
+   new set literals and set/dict comprehensions. In Sphinx use::
+      
+      .. highlight: py3
+
+
 Not covered in here:
-argparse replaces optparse
-logging can be configured w/ dicts
-memoryviews
+
+ * argparse replaces optparse
+ * logging can be configured w/ dicts
+ * memoryviews
 
