@@ -7,6 +7,7 @@ Blog: http://rocketcirc.us
    :maxdepth: 2
 
    20110616/metaclass
+   20110714/new27
 
 Indices and tables
 ==================
