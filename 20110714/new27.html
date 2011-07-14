@@ -50,7 +50,7 @@
   <div class="section" id="whats-new-in-python-2-7">
 <h1>Whats new in Python 2.7<a class="headerlink" href="#whats-new-in-python-2-7" title="Permalink to this headline">¶</a></h1>
 <p>Full details from the source <a class="reference external" href="http://docs.python.org/dev/whatsnew/2.7.html">http://docs.python.org/dev/whatsnew/2.7.html</a></p>
-<p>Sample code:</p>
+<p>Sample code for new Python 2.7 features with 2.6 versions first:</p>
 <div class="highlight-py3"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">system</span>
 <span class="kn">import</span> <span class="nn">unittest</span>
 <span class="kn">import</span> <span class="nn">collections</span>
@@ -140,10 +140,23 @@
         <span class="k">pass</span>
 </pre></div>
 </div>
-<p>Not covered in here:
-argparse replaces optparse
-logging can be configured w/ dicts
-memoryviews</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Pygments (used by Sphinx for syntax highlighting) will not render this
+source unless you tell it to treat it as Python 3. This is due to the
+new set literals and set/dict comprehensions. In Sphinx use:</p>
+<div class="last highlight-py3"><div class="highlight"><pre><span class="o">..</span> <span class="n">highlight</span><span class="p">:</span> <span class="n">py3</span>
+</pre></div>
+</div>
+</div>
+<p>Not covered in here:</p>
+<blockquote>
+<div><ul class="simple">
+<li>argparse replaces optparse</li>
+<li>logging can be configured w/ dicts</li>
+<li>memoryviews</li>
+</ul>
+</div></blockquote>
 </div>
 
 
